@@ -27,19 +27,19 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Install Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses: hashicorp/setup-terraform
       with:
         terraform-version: 0.15.x
 
     - name: Apply Terraform changes
-      uses: hashicorp/terraform-action@v2
+      uses: hashicorp/terraform-action
       with:
         terraform-version: 0.15.x
         working-directory: terraform
         extra-arguments: apply -auto-approve
 
     - name: Deploy to Kubernetes
-      uses: jocatalin/kubectl-apply@v1
+      uses: jocatalin/kubectl-apply
       with:
         kubectl-version: latest
         args: apply -f k8s/deployment.yaml
