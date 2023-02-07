@@ -1,45 +1,63 @@
-name: Deploy to AWS EKS
+defaults:
+  run:
+    working-directory: ${{ env.tf_actions_working_dir }}
+permissions:
+  pull-requests: write
+steps:
+- uses: actions/checkout@v3
+- uses: hashicorp/setup-terraform@v2
 
-on:
-  push:
-    branches:
-      - main
+- name: Terraform fmt
+  id: fmt
+  run: terraform fmt -check
+  continue-on-error: true
 
-env:
-  AWS_REGION: us-west-2
-  K8S_NAMESPACE: hello-world
-  K8S_DEPLOYMENT_NAME: hello-world
-  IMAGE_TAG: latest
+- name: Terraform Init
+  id: init
+  run: terraform init
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+- name: Terraform Validate
+  id: validate
+  run: terraform validate -no-color
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+- name: Terraform Plan
+  id: plan
+  run: terraform plan -no-color
+  continue-on-error: true
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+- uses: actions/github-script@v6
+  if: github.event_name == 'pull_request'
+  env:
+    PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    script: |
+      const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+      #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+      #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+      <details><summary>Validation Output</summary>
 
-    - name: Install Terraform
-      uses: hashicorp/setup-terraform
-      with:
-        terraform-version: 0.15.x
+      \`\`\`\n
+      ${{ steps.validate.outputs.stdout }}
+      \`\`\`
 
-    - name: Apply Terraform changes
-      uses: hashicorp/terraform-action
-      with:
-        terraform-version: 0.15.x
-        working-directory: terraform
-        extra-arguments: apply -auto-approve
+      </details>
 
-    - name: Deploy to Kubernetes
-      uses: jocatalin/kubectl-apply
-      with:
-        kubectl-version: latest
-        args: apply -f k8s/deployment.yaml
+      #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+      <details><summary>Show Plan</summary>
+
+      \`\`\`\n
+      ${process.env.PLAN}
+      \`\`\`
+
+      </details>
+
+      *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+      github.rest.issues.createComment({
+        issue_number: context.issue.number,
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        body: output
+      })
