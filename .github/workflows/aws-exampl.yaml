@@ -1,0 +1,45 @@
+name: Deploy to AWS EKS
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-west-2
+  K8S_NAMESPACE: hello-world
+  K8S_DEPLOYMENT_NAME: hello-world
+  IMAGE_TAG: latest
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform-version: 0.15.x
+
+    - name: Apply Terraform changes
+      uses: hashicorp/terraform-action@v2
+      with:
+        terraform-version: 0.15.x
+        working-directory: terraform
+        extra-arguments: apply -auto-approve
+
+    - name: Deploy to Kubernetes
+      uses: jocatalin/kubectl-apply@v1
+      with:
+        kubectl-version: latest
+        args: apply -f k8s/deployment.yaml
