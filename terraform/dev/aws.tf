@@ -104,6 +104,6 @@ module "eks" {
   tags = local.tags
 }
 
-output "kubeconfig" {
+#output "kubeconfig" {
 #  value = module.eks.kubeconfig
-}
+#}
