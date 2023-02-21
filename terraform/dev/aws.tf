@@ -1,10 +1,10 @@
 provider "aws" {
-  region = "us-west-2"
+  region = "us-west-1"
 }
 
 locals {
   name   = "demo1"
-  region = "eu-west-1"
+  region = "us-west-1"
 
   tags = {
     Env    = local.name
