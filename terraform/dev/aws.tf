@@ -98,7 +98,8 @@ module "eks" {
   version = "19.10.0"
 
   cluster_name = "k8s-cluster"
-#  subnets = module.vpc.private_subnets
+  subnet_ids               = module.vpc.private_subnets
+  control_plane_subnet_ids = module.vpc.intra_subnets
   vpc_id = module.vpc.vpc_id
 #  vpc_security_group_ids = [module.vpc.default_security_group_id]
   tags = local.tags
