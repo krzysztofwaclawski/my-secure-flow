@@ -95,16 +95,13 @@ resource "aws_security_group" "vpc_tls" {
 
 module "eks" {
   source = "terraform-aws-modules/eks/aws"
-  version = "15.0.0"
+  version = "19.10.0"
 
   cluster_name = "k8s-cluster"
   subnets = module.vpc.private_subnets
   vpc_id = module.vpc.vpc_id
-  vpc_security_group_ids = [module.vpc.default_security_group_id]
-  tags = {
-    Terraform   = "true"
-    Environment = "dev"
-  }
+#  vpc_security_group_ids = [module.vpc.default_security_group_id]
+  tags = local.tags
 }
 
 output "kubeconfig" {
