@@ -105,5 +105,5 @@ module "eks" {
 }
 
 output "kubeconfig" {
-  value = module.eks.kubeconfig
+#  value = module.eks.kubeconfig
 }
