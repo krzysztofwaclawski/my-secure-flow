@@ -1,0 +1,17 @@
+name: Terraform Security Check
+
+on:
+  push:
+    branches:
+      - secure
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install tfsec
+      uses: liamg/tfsec-action@v0.5.1
+    - name: Run tfsec
+      run: tfsec terraform/dev
+
