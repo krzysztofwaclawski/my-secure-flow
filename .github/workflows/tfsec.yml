@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - secure
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+
 
 jobs:
   security:
