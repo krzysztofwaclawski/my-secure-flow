@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install tfsec
-      uses: liamg/tfsec-action@v0.5.1
+      uses: aquasecurity/tfsec-action@v1.0.0
     - name: Run tfsec
       run: tfsec terraform/dev
 
