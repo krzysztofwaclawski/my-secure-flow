@@ -92,6 +92,28 @@ resource "aws_security_group" "vpc_tls" {
 
   tags = local.tags
 }
+
+#Result #1 CRITICAL Security group rule allows egress to multiple public internet addresses.     
+
+resource "aws_security_group_rule" "example" {
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 65535
+  protocol          = "tcp"
+  cidr_blocks       = [aws_vpc.example.cidr_block]
+  ipv6_cidr_blocks  = [aws_vpc.example.ipv6_cidr_block]
+  security_group_id = "sg-123456"
+}
+    
+resource "aws_security_group_rule" "allow_all" {
+  type              = "egress"
+  to_port           = 0
+  protocol          = "-1"
+  prefix_list_ids   = [aws_vpc_endpoint.my_endpoint.prefix_list_id]
+  from_port         = 0
+  security_group_id = "sg-123456"
+}    
+    
 #Result #7 MEDIUM VPC Flow Logs is not enabled for VPC  
 resource "aws_flow_log" "example" {
   log_destination      = aws_s3_bucket.example.arn
