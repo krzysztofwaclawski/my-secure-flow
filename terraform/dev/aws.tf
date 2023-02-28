@@ -92,6 +92,21 @@ resource "aws_security_group" "vpc_tls" {
 
   tags = local.tags
 }
+#Result #7 MEDIUM VPC Flow Logs is not enabled for VPC  
+resource "aws_flow_log" "example" {
+  log_destination      = aws_s3_bucket.example.arn
+  log_destination_type = "s3"
+  traffic_type         = "ALL"
+  vpc_id               = aws_vpc.example.id
+  destination_options {
+    file_format        = "parquet"
+    per_hour_partition = true
+  }
+}
+
+resource "aws_s3_bucket" "example" {
+  bucket = "example"
+}
 
 module "eks" {
   source = "terraform-aws-modules/eks/aws"
