@@ -142,6 +142,12 @@ module "eks" {
   tags = local.tags
 }
 
+variable "map_public_ip_on_launch" {
+  description = "Should be false if you do not want to auto-assign public IP on launch"
+  type        = bool
+  default     = false
+}
+    
 #output "kubeconfig" {
 #  value = module.eks.kubeconfig
 #}
