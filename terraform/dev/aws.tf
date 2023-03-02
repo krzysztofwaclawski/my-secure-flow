@@ -93,6 +93,43 @@ resource "aws_security_group" "vpc_tls" {
   tags = local.tags
 }
 
+#Result #1 CRITICAL Security group rule allows egress to multiple public internet addresses.     
+
+resource "aws_security_group_rule" "example" {
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 65535
+  protocol          = "tcp"
+  cidr_blocks       = [aws_vpc.example.cidr_block]
+  ipv6_cidr_blocks  = [aws_vpc.example.ipv6_cidr_block]
+  security_group_id = "sg-123456"
+}
+    
+resource "aws_security_group_rule" "allow_all" {
+  type              = "egress"
+  to_port           = 0
+  protocol          = "-1"
+  prefix_list_ids   = [aws_vpc_endpoint.my_endpoint.prefix_list_id]
+  from_port         = 0
+  security_group_id = "sg-123456"
+}    
+    
+#Result #7 MEDIUM VPC Flow Logs is not enabled for VPC  
+resource "aws_flow_log" "example" {
+  log_destination      = aws_s3_bucket.example.arn
+  log_destination_type = "s3"
+  traffic_type         = "ALL"
+  vpc_id               = aws_vpc.example.id
+  destination_options {
+    file_format        = "parquet"
+    per_hour_partition = true
+  }
+}
+
+resource "aws_s3_bucket" "example" {
+  bucket = "example"
+}
+
 module "eks" {
   source = "terraform-aws-modules/eks/aws"
   version = "19.10.0"
@@ -105,6 +142,12 @@ module "eks" {
   tags = local.tags
 }
 
+variable "map_public_ip_on_launch" {
+  description = "Should be false if you do not want to auto-assign public IP on launch"
+  type        = bool
+  default     = false
+}
+    
 #output "kubeconfig" {
 #  value = module.eks.kubeconfig
 #}
